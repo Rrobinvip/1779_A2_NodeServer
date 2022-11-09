@@ -1,0 +1,1 @@
+zsh -i start.sh
