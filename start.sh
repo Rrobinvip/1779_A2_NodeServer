@@ -35,4 +35,5 @@ echo "You are good to go. Launching instance.."
 sleep 1s
 
 # Lauch instance
-python3 run.py
+CURRENT_PATH=$(pwd)
+python3 ${CURRENT_PATH}/run.py
