@@ -34,6 +34,5 @@ fi
 echo "You are good to go. Launching instance.."
 sleep 1s
 
-# Lauch instance
-CURRENT_PATH=$(pwd)
-python3 ${CURRENT_PATH}/run.py
+# Lauch instanc
+python3 /home/ubuntu/Node_server/1779_A2_NodeServer/run.py
