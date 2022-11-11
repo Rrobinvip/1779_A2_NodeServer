@@ -1,11 +1,11 @@
-from backend.config import Config
-import mysql.connector as MySQL
-from datetime import datetime
-from mysql.connector import errorcode
+# from backend.config import Config
+# import mysql.connector as MySQL
+# from datetime import datetime
+# from mysql.connector import errorcode
 
-#This class provide backend database access. It provides funciton to query data from
-#and insert into configuration and statistics database
-#Already tested
+# #This class provide backend database access. It provides funciton to query data from
+# #and insert into configuration and statistics database
+# #Already tested
 
 # class Data:
 #     cursor = None
@@ -93,25 +93,3 @@ from mysql.connector import errorcode
 #         """.format(itemNum,itemSize,requestNum,missRate,hitRate,fixed_now)
 #         self.cursor.execute(query)
 #         self.cnx.commit()
-    
-    
-    
-        
-
-
-
-
-
-
-
-
-
-
-
-
-    
-        
-    
-
-
-        
