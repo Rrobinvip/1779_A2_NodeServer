@@ -40,7 +40,7 @@ class Memcache:
         if specs.status_code == 200:
             config = specs.json()
             self.configSize = config['size']
-            self.replacementPolicy = config['replacement_policy']
+            self.replacementPolicy = config['replace_policy']
             print(" - Backend.memcache.__init__ : Init from manager. =>")
         else:
             self.configSize = 100.0      # Give 100MB initial size as default
@@ -148,6 +148,8 @@ class Memcache:
         will keep removing items based on replacement policy until some conditions are meet. 
         '''
         self.requestNum += 1
+
+        print(" - Backend.memcache: refreshing policy with p:{} s:{}".format(replacement_policy, float(size)))
 
         self.configSize = float(size)
         self.replacementPolicy = replacement_policy
