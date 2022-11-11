@@ -7,10 +7,8 @@ class Config():
     #     'host':'localhost',
     #     'database':'cloudcomputing'
     # }
-    DB_CONFIG = {
-        "user":"root",
-        "password":"19970808",
-        "host":"localhost",
-        "database":"memcache_test_1"
-    }
-    API_KEY = "0738522766"
+    SECRET_KEY = "teeesssttt"
+    INSTANCE_ID = [
+        'i-0522fc067719b7e7b'
+    ]
+    MASTER_INSTANCE_ID = 'i-01e24b43881322f78'

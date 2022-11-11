@@ -1,4 +1,5 @@
 import sys
+import requests
 
 def byteSize(memcache:dict):
     '''
@@ -34,6 +35,15 @@ def checkSize(memcache,config_size):
 def mbytesize_obj(obj):
     return sys.getsizeof(obj)/(1024*1024)
 
-
-    
-    
+def api_call(ipv4, type, commend, params=None):
+    '''
+    This function is used to use the api. \n
+    The flag will need to be updated in the future to accommodate different api's.
+    '''
+    request_url = "http://{}".format(ipv4)
+    url = request_url+commend
+    print(" - Backend.helper.api_call: ", url)
+    if type == "GET":
+        return requests.get(url, params, timeout=0.5)
+    elif type == "POST":
+        return requests.post(url, params, timeout=0.5)

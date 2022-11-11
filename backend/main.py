@@ -7,24 +7,53 @@ import threading
 from glob import escape
 
 
-#Data Model
+# #Data Model
 # from backend.data import Data
 
-#initialize the database connection
+# #initialize the database connection
 # sql_connection = Data()
 
-#stats Model
-from backend.stats import Stats
+# #stats Model
+# from backend.stats import Stats
 # stats_update = Stats()
 
 # Memcache object
 from backend.memcache import Memcache
 memcache = Memcache()
 
-@app.route('/connection_status', methods=['GET'])
-def connection_status():
-    if request.method == 'GET':
-        return jsonify({"Message":"Node running"}), 200
+# AWS controller
+from backend.aws import AWSController
+aws_controller = AWSController()
+
+@app.route('/')
+def main():
+    return "Here is backend"
+
+#This is front back call example
+@app.route('/test')
+def test():
+    message = "This is message"
+    #generate the json response
+    response = jsonify({
+        "success":"true",
+        "status":200,
+        "message":message
+    })
+    #return json response
+    return response
+
+# @app.route('/statistics')
+# def stats():
+#     '''
+#     When first request initilized from browser, frondend will call this api to active a thread to 
+#     record status. 
+#     '''
+#     print(" * Backend is running.")
+#     thread = threading.Thread(target = stats_update.stats_update_t2, args = (memcache, ))
+#     thread.start()
+#     print(" * Starts threading.")
+#     return jsonify({"Messsge":"True, threading starts"}), 200
+    
     
 @app.route('/get', methods=['GET', 'POST'])
 def get():
@@ -52,6 +81,7 @@ def get():
         return jsonify(response), 400
 
 
+
 @app.route('/put', methods=['POST'])
 def put():
     '''
@@ -75,7 +105,7 @@ def put():
 
     return jsonify(returnMessage), returnCode
 
-@app.route('/clear')
+@app.route('/clear', methods=['GET'])
 def clear():
     '''
     Clean memcache. 
@@ -83,37 +113,23 @@ def clear():
     memcache.clear()
     return jsonify({"Message":"Clear down"}), 200
 
-# @app.route('/config', methods=['GET'])
-# def config():
-#     '''
-#     Set memcache configration.
-#     '''
-#     size = 100.0
-#     replacementPolicy = 1
-#     if "size" in request.args and "replacement_policy" in request.args:
-#         size = escape(request.args.get("size"))
-#         replacementPolicy = escape(request.args.get("replacement_policy"))
-#         memcache.refreshConfiguration(size, replacementPolicy)
+@app.route('/config', methods=['GET'])
+def config():
+    '''
+    Set memcache configration.
+    '''
+    size = 100.0
+    replacementPolicy = 1
+    if "size" in request.args and "replacement_policy" in request.args:
+        size = escape(request.args.get("size"))
+        replacementPolicy = escape(request.args.get("replacement_policy"))
+        memcache.refreshConfiguration(size, replacementPolicy)
 
-#     sql_connection.insert_config_data(size, replacementPolicy)
-#     return jsonify({"Message":"Success update config"}), 200
+    return jsonify({"Message":"Success update config"}), 200
 
 # @app.route('/status', methods=['GET'])
 # def status():
 #     # This part doesn't work. Because flask cant pass 2D array (from sql) through api. 
 #     data = sql_connection.get_stat_data()
 #     return data, 200
-
-
-# @app.route('/statistics')
-# def stats():
-#     '''
-#     When first request initilized from browser, frondend will call this api to active a thread to 
-#     record status. 
-#     '''
-#     print(" * Backend is running.")
-#     thread = threading.Thread(target = stats_update.stats_update_t2, args = (memcache, ))
-#     thread.start()
-#     print(" * Starts threading.")
-#     return jsonify({"Messsge":"True, threading starts"}), 200
 

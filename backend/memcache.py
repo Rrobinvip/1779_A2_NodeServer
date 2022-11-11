@@ -1,7 +1,9 @@
 import random
-from backend.helper import mbytesize, mbytesize_obj
+from backend.helper import mbytesize, mbytesize_obj, api_call
 # from backend.data import Data
 # sql_connection = Data()
+from backend.aws import AWSController
+aws_controller = AWSController()
 
 class Memcache:
     memcacheKeyValue = None
@@ -15,7 +17,7 @@ class Memcache:
     missRate = None
     hitRate = None
     configSize = None
-    # replacementPolicy = None
+    replacementPolicy = None
     
     def __init__(self):
         self.memcacheKeyValue = {}
@@ -28,24 +30,29 @@ class Memcache:
         self.miss = 0
         self.missRate = 0.0
         self.hitRate = 0.0
-
-        self.configSize = 1000      # Give 1GB as default.
-
         
-        # specs = sql_connection.get_config_data()
-        # try:
-        #     self.configSize = specs[0][1]
-        #     self.replacementPolicy = specs[0][2]
-        #     print(" - Backend.memcahe: Config retrieved from DB.")
-        # except IndexError:
-        #     self.configSize = 100.0      # Give 100MB initial size as default
-        #     self.replacementPolicy = 1
-        #     print(" - Backend.memcache: DB doesn't hold any condig, give default values. ")
+        # Call manager to get status. Always assuming master is running.
+        master_ip = aws_controller.get_master_instance_ip_address()
+
+        url = master_ip+":5000/manager/"
+        specs = api_call(url, "GET", "api/get_config")
+
+        if specs.status_code == 200:
+            config = specs.json()
+            self.configSize = config['size']
+            self.replacementPolicy = config['replacement_policy']
+            print(" - Backend.memcache.__init__ : Init from manager. =>")
+        else:
+            self.configSize = 100.0      # Give 100MB initial size as default
+            self.replacementPolicy = 1
+            print(" - Backend.memcache.__init__ : Init from default. =>")
+
 
         print(" - Backend.memcache.__init__ : Init complete, status =>")
         print(" \t configsize: ", self.configSize)
-        # print(" \t policy: ", self.replacementPolicy)
+        print(" \t policy: ", self.replacementPolicy)
 
+        pass
 
     def put(self, key, value, upload_time):
         '''
@@ -64,16 +71,35 @@ class Memcache:
         putSize += mbytesize_obj(upload_time)
 
         self.requestNum += 1
+        
+        if self.spaceSwap(putSize):
+            self.pairAdd(key, value, upload_time)
+            print(" - Backend.memcache.put : a new key stored.")
+            return True
+        else:
+            print(" - Backend.memcache.put : memcache cannot hold this pair.")
+            return False
 
+    def spaceSwap(self, putSize):
+        '''
+        This function tests if a new pair can be put into the memcache. 
+
+        - If there are many pairs already in the memcache, this function will start to delete pairs based on users config. Stop when no pairs or enough space.
+        - If there has no pairs in memcache, put putSize is still larger than the config size, it will return false and lead to a failure on put. 
+        '''
         _exceed_put = (putSize + self.itemSize) > self.configSize
-        if _exceed_put:
-            print("This node is full. Cannot complete put.")
+        while _exceed_put and self.itemNum != 0:
+            if self.replacementPolicy == 1:
+                self.removeLeastRecentUse()
+            else:
+                self.randomRemove()
+            _exceed_put = (putSize + self.itemSize) > self.configSize
+        if _exceed_put and self.itemNum == 0:
+            print(" - Backend.memcache.spaceSwap : No items, but new file is too large. Increase memcache config size. This file will not be stored in memcache")
             return False
         else:
-            print("Put success.")
-            self.pairAdd(key, value, upload_time)
             return True
-        
+
     
     def get(self, key):
         '''
@@ -84,6 +110,7 @@ class Memcache:
         upload_time = None
         self.requestNum += 1
         if key in self.memcacheKeyValue:
+
             value = self.memcacheKeyValue[key]
             upload_time = self.memcacheKeyUploadTime[key]
             self.memcacheKeyUsage[key]+=1
@@ -115,6 +142,42 @@ class Memcache:
         if key in self.memcacheKeyValue:
             self.pairDelete(key)
         
+    def refreshConfiguration(self, size, replacement_policy):
+        '''
+        This function will reset memcache config. After reset config, if current item size is larger than config size, memcache
+        will keep removing items based on replacement policy until some conditions are meet. 
+        '''
+        self.requestNum += 1
+
+        self.configSize = float(size)
+        self.replacementPolicy = replacement_policy
+
+        _exceed, size = self.checkSize()
+        print(" - Backend.memcache.put v:_exceed: ", _exceed)
+        if _exceed == False:
+            return True
+        else:
+            if self.itemNum != 0:
+                notEmpty = True
+            else:
+                notEmpty = False
+                
+            while _exceed and notEmpty:
+                if self.replacementPolicy == 1:
+                    result =  self.removeLeastRecentUse()
+                    if result == None:
+                        notEmpty = False
+                else:
+                    result = self.randomRemove()
+                    if result == None:
+                        notEmpty = False                        
+                _exceed, size = self.checkSize()
+            if not notEmpty and _exceed:
+                print("Very rare situation happened. It's empty but size is already too large to put any pairs.")
+                print("Consider add more default size. ")
+                return False
+            return True
+        
     def checkSize(self):
         '''
         This function checks whether the size of memcache.
@@ -126,6 +189,32 @@ class Memcache:
         size += mbytesize(self.memcacheKeyUsage)
         print(" - Backend.memcache.checkSize v:size: ", size)
         return size > self.configSize, size
+
+    def randomRemove(self):
+        '''
+        This function helps reandom remove an item from memcache.
+        it will return the removed key, if the value is none, then the remove
+        action fails
+        '''
+        key = None
+        if self.itemNum != 0:
+            key = random.choice(list(self.memcacheKeyValue.keys()))
+            self.pairDelete(key)
+        return key
+
+
+    def removeLeastRecentUse(self):
+        '''
+        This function helps remove the least recent use key.
+        It will return the removed key, if key is none, then the remove
+        action fails.
+        '''
+        key = None
+        if self.itemNum != 0:
+            key = min(self.memcacheKeyUsage)
+            self.pairDelete(key)
+        return key
+    
 
     def getStatus(self):
         '''
