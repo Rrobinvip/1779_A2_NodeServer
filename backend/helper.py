@@ -44,6 +44,12 @@ def api_call(ipv4, type, commend, params=None):
     url = request_url+commend
     print(" - Backend.helper.api_call: ", url)
     if type == "GET":
-        return requests.get(url, params, timeout=0.5)
+        try:
+            return requests.get(url, params, timeout=0.5)
+        except ConnectionError as ce:
+            return None
     elif type == "POST":
-        return requests.post(url, params, timeout=0.5)
+        try:
+            return requests.post(url, params, timeout=0.5)
+        except ConnectionError as ce:
+            return None

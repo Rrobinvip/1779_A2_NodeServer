@@ -34,7 +34,10 @@ class Memcache:
         # Call manager to get status. Always assuming master is running.
         master_ip = aws_controller.get_master_instance_ip_address()
 
-        url = master_ip+":5000/manager/"
+        if master_ip == None:
+            url = "localhost:5000/manager/"
+        else:
+            url = master_ip+":5000/manager/"
         specs = api_call(url, "GET", "api/get_config")
 
         if specs.status_code == 200:
