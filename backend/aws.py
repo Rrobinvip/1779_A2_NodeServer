@@ -146,6 +146,7 @@ class AWSController:
                 }],
                 'Unit':'Percent',
                 'Value':missRate
-            }]
+            }],
+            Namespace = 'ece1779/a2'
         )
         return response
