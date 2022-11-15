@@ -47,17 +47,16 @@ def main():
     return "Here is backend"
 
 #This is front back call example
-@app.route('/test')
+@app.route('/test',methods=['GET'])
 def test():
-    message = "This is message"
+    message = "Hello from node."
     #generate the json response
     response = jsonify({
         "success":"true",
-        "status":200,
         "message":message
     })
     #return json response
-    return response
+    return response, 200
 
 # @app.route('/statistics')
 # def stats():
