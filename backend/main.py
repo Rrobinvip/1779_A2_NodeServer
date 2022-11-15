@@ -28,7 +28,7 @@ aws_controller = AWSController()
 
 @app.before_first_request
 def run_when_start():
-    task = threading.Thread(traget = cloud_watch_update)
+    task = threading.Thread(target = cloud_watch_update)
     task.start()
 
 def cloud_watch_update():
