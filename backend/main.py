@@ -5,6 +5,7 @@ from backend import app
 from flask import json
 import threading
 from glob import escape
+import time
 
 
 # #Data Model
@@ -24,6 +25,19 @@ memcache = Memcache()
 # AWS controller
 from backend.aws import AWSController
 aws_controller = AWSController()
+
+@app.before_first_request
+def run_when_start():
+    task = threading.Thread(traget = cloud_watch_update)
+    task.start()
+
+def cloud_watch_update():
+    while True:
+        missRate = memcache.getStatus()[3]
+        instanceID = 'i-0522fc067719b7e7b'
+        response = aws_controller.update_cloud_watch(missRate, instanceID)
+        print(response)
+        time.sleep(60)
 
 @app.route('/')
 def main():

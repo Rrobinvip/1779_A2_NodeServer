@@ -132,3 +132,20 @@ class AWSController:
     def clear_RDS(self):
         # TODO: remove all entries from RDS.
         return 1
+    
+    def update_cloud_watch(self, missRate, instanceID):
+        watchClient = boto3.client('cloudwatch',
+                              region_name = 'us-east-1'
+        )
+        response = watchClient.put_metric_data(
+            MetricData = [{
+                'MetricName': 'MissRate',
+                'Dimensions':[{
+                    'Name':'Instance ID',
+                    'Value': instanceID,
+                }],
+                'Unit':'Percent',
+                'Value':missRate
+            }]
+        )
+        return response
