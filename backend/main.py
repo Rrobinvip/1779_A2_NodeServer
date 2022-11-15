@@ -6,6 +6,7 @@ from flask import json
 import threading
 from glob import escape
 import time
+from ec2_metadata import ec2_metadata
 
 
 # #Data Model
@@ -34,7 +35,9 @@ def run_when_start():
 def cloud_watch_update():
     while True:
         missRate = memcache.getStatus()[3]
+        print(ec2_metadata.instance_id)
         instanceID = 'i-0522fc067719b7e7b'
+        print(instanceID)
         response = aws_controller.update_cloud_watch(missRate, instanceID)
         print(response)
         time.sleep(60)
