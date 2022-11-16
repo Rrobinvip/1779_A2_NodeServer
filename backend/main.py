@@ -141,7 +141,7 @@ def config():
 
     return jsonify({"Message":"Success update config"}), 200
 
-@app.route('/handshake', metods=["GET"])
+@app.route('/handshake', methods=["GET"])
 def handshake():
     '''
     This function is used for hand shake with front end

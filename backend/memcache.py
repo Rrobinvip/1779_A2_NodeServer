@@ -45,7 +45,7 @@ class Memcache:
         parms = {
             "instanceID":ec2_metadata.instance_id
         }
-        handShake = api_call(hand_shake_url, "GET", "handshake", parms)
+        #handShake = api_call(hand_shake_url, "GET", "handshake", parms)
 
 
         if specs.status_code == 200:
