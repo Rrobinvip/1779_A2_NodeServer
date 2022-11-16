@@ -35,9 +35,7 @@ def run_when_start():
 def cloud_watch_update():
     while True:
         missRate = memcache.getStatus()[3]
-        print(ec2_metadata.instance_id)
-        instanceID = 'i-0522fc067719b7e7b'
-        print(instanceID)
+        instanceID = ec2_metadata.instance_id
         response = aws_controller.update_cloud_watch(missRate, instanceID)
         print(response)
         time.sleep(60)
@@ -143,9 +141,13 @@ def config():
 
     return jsonify({"Message":"Success update config"}), 200
 
-# @app.route('/status', methods=['GET'])
-# def status():
-#     # This part doesn't work. Because flask cant pass 2D array (from sql) through api. 
-#     data = sql_connection.get_stat_data()
-#     return data, 200
+@app.route('/handshake', metods=["GET"])
+def handshake():
+    '''
+    This function is used for hand shake with front end
+    '''
+    return jsonify({
+        "success":"true",
+        "status":200
+    })
 
