@@ -19,6 +19,7 @@ class Memcache:
     hitRate = None
     configSize = None
     replacementPolicy = None
+    requestNumPreviousMin = None
     
     def __init__(self):
         self.memcacheKeyValue = {}
@@ -31,6 +32,7 @@ class Memcache:
         self.miss = 0
         self.missRate = 0.0
         self.hitRate = 0.0
+        self.requestNumPreviousMin = 0
         
         # Call manager to get status. Always assuming master is running.
         master_ip = aws_controller.get_master_instance_ip_address()
@@ -250,3 +252,14 @@ class Memcache:
         self.memcacheKeyUsage.update({key:0})
         self.itemNum+=1
         _exceed, self.itemSize = self.checkSize()
+    
+
+    def getRequestPerMin(self):
+        '''
+        This function returns the number of request per min
+        '''
+        number = self.requestNum - self.requestNumPreviousMin
+        
+        self.requestNumPreviousMin = number + self.requestNumPreviousMin
+
+        return number 
