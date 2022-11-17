@@ -27,11 +27,6 @@ memcache = Memcache()
 from backend.aws import AWSController
 aws_controller = AWSController()
 
-@app.before_first_request
-def run_when_start():
-    task = threading.Thread(target = cloud_watch_update)
-    task.start()
-
 def cloud_watch_update():
     while True:
         missRate = memcache.getStatus()[3]
@@ -39,6 +34,10 @@ def cloud_watch_update():
         response = aws_controller.update_cloud_watch(missRate, instanceID)
         print(response)
         time.sleep(60)
+
+
+cloud_watch_task = threading.Thread(target = cloud_watch_update)
+cloud_watch_task.start()
 
 @app.route('/')
 def main():
