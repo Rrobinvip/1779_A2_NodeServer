@@ -27,12 +27,42 @@ memcache = Memcache()
 from backend.aws import AWSController
 aws_controller = AWSController()
 
+#cloud watch
+from backend.cloudwatch import CloudWatch
+cloud_watch = CloudWatch()
+
 def cloud_watch_update():
+    count = 0
     while True:
         missRate = memcache.getStatus()[3]
+        hitRate = memcache.getStatus()[4]
+        numberOfItem = memcache.getStatus()[0]
+        sizeOfItem = memcache.getStatus()[1]
         instanceID = ec2_metadata.instance_id
-        response = aws_controller.update_cloud_watch(missRate, instanceID)
+        #Miss Rate
+        response = cloud_watch.put_miss_rate(instanceID, missRate)
+        print("---------------Miss Rate---------")
         print(response)
+        #Hit Rate
+        response = cloud_watch.put_hit_rate(instanceID, hitRate)
+        print("----------Hit Rate----------------")
+        print(response)
+        # Number of Item
+        response = cloud_watch.put_number_of_item_in_cache(instanceID,numberOfItem)
+        print("------------Number of Item-------------")
+        print(response)
+        #Size of Item
+        response = cloud_watch.put_total_size_of_item(instanceID,sizeOfItem)
+        print("-------------Total Size----------------")
+        print(response)
+        if count == 5:
+            number = memcache.getRequestPerMin()
+            response = cloud_watch.put_number_of_requests(instanceID,number)
+            count = 0
+            print("-------------Number of Request---------------")
+            print(response)
+        else:
+            count = count+1
         time.sleep(10)
 
 
