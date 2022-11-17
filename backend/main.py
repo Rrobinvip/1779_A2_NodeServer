@@ -33,7 +33,7 @@ def cloud_watch_update():
         instanceID = ec2_metadata.instance_id
         response = aws_controller.update_cloud_watch(missRate, instanceID)
         print(response)
-        time.sleep(60)
+        time.sleep(10)
 
 
 cloud_watch_task = threading.Thread(target = cloud_watch_update)
