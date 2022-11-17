@@ -40,13 +40,6 @@ class Memcache:
         else:
             url = master_ip+":5000/manager/"
         specs = api_call(url, "GET", "api/get_config")
-        #hand shake with front end to initialize the cloudwatch
-        hand_shake_url = master_ip+":5000/"
-        parms = {
-            "instanceID":ec2_metadata.instance_id
-        }
-        handShake = api_call(hand_shake_url, "GET", "handshake", parms)
-
 
         if specs.status_code == 200:
             config = specs.json()
