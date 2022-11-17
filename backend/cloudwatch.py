@@ -74,7 +74,7 @@ class CloudWatch:
             MetricData = [{
                 'MetricName':"NumberOfRequest",
                 'Dimensions':[{
-                    'Name':'InstanceID',
+                    'Name':'Instance ID',
                     'Value':instanceID
                 }],
                 'Unit':'Count',
