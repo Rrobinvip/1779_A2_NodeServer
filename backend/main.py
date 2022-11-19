@@ -55,7 +55,7 @@ def cloud_watch_update():
         response = cloud_watch.put_total_size_of_item(instanceID,sizeOfItem)
         print("-------------Total Size----------------")
         print(response)
-        if count == 5:
+        if count == 12:
             number = memcache.getRequestPerMin()
             response = cloud_watch.put_number_of_requests(instanceID,number)
             count = 0
@@ -63,7 +63,7 @@ def cloud_watch_update():
             print(response)
         else:
             count = count+1
-        time.sleep(10)
+        time.sleep(5)
 
 
 cloud_watch_task = threading.Thread(target = cloud_watch_update)
